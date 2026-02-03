@@ -2508,6 +2508,11 @@ const vestauth = require('vestauth')
 const app = express()
 app.use(express.json())
 
+app.get('/pings', (req, res) => {
+  const batch = PINGS.splice(0, 3)
+  res.json(batch)
+})
+
 app.get('/', (req, res) => {
   res.type('html').send(`<!doctype html>
 <html lang="en">
@@ -2568,26 +2573,33 @@ app.get('/', (req, res) => {
       const activePoints = [];
       globe.pointsData(activePoints);
 
-      let shown = 0;
-      const interval = setInterval(() => {
-        if (shown >= allPoints.length) {
-          clearInterval(interval);
-          return;
+      async function pullPings() {
+        try {
+          const res = await fetch('/pings');
+          if (!res.ok) return;
+          const batch = await res.json();
+          if (!Array.isArray(batch) || batch.length === 0) return;
+          for (let i = 0; i < batch.length; i += 1) {
+            const p = batch[i];
+            activePoints.push({
+              lat: p.lat,
+              lng: p.lng,
+              altitude: 0,
+              maxAltitude: p.altitude,
+              r: maxRadius,
+              opacity: 1,
+              grown: false,
+              start: performance.now(),
+              born: performance.now()
+            });
+          }
+        } catch (_) {
+          // noop
         }
-        const p = allPoints[shown];
-        activePoints.push({
-          lat: p.lat,
-          lng: p.lng,
-          altitude: 0,
-          maxAltitude: p.altitude,
-          r: maxRadius,
-          opacity: 1,
-          grown: false,
-          start: performance.now(),
-          born: performance.now()
-        });
-        shown += 1;
-      }, 100);
+      }
+
+      pullPings();
+      setInterval(pullPings, 100);
 
       function animate() {
         const now = performance.now();
