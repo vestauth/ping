@@ -3,19 +3,28 @@ const PINGS = [
   {
     "lat": -4.098472282215965,
     "lng": 62.38327288776679,
-    "altitude": 125.71757294600654
+    "altitude": 125.71757294600654,
+    "ts": Date.now() - 5000,
+    "id": 1
   },
   {
     "lat": 41.891724802649605,
     "lng": -52.948633450448966,
-    "altitude": 171.65974334090905
+    "altitude": 171.65974334090905,
+    "ts": Date.now() - 3000,
+    "id": 2
   },
   {
     "lat": 55.46306459566543,
     "lng": -167.01908595628387,
-    "altitude": 109.54863004944752
+    "altitude": 109.54863004944752,
+    "ts": Date.now() - 1000,
+    "id": 3
   }
 ]
+let NEXT_PING_ID = 4
+const PING_TTL_MS = 60 * 1000
+const MAX_PINGS = 5000
 
 const express = require('express')
 const vestauth = require('vestauth')
@@ -57,13 +66,33 @@ app.get('/headers', (req, res) => {
 
 app.get('/ping', (req, res) => {
   const ping = getGeo(req)
-  PINGS.push(ping)
-  res.json(ping)
+  const now = Date.now()
+  const enriched = {
+    ...ping,
+    ts: now,
+    id: NEXT_PING_ID++
+  }
+  PINGS.push(enriched)
+  res.json(enriched)
 })
 
 app.get('/pings', (req, res) => {
-  const ping = PINGS.pop()
-  res.json(ping ? [ping] : [])
+  const now = Date.now()
+  const since = Number(req.query.since || 0)
+
+  // trim old and cap size
+  while (PINGS.length && now - PINGS[0].ts > PING_TTL_MS) {
+    PINGS.shift()
+  }
+  if (PINGS.length > MAX_PINGS) {
+    PINGS.splice(0, PINGS.length - MAX_PINGS)
+  }
+
+  const batch = since > 0
+    ? PINGS.filter(p => p.ts > since || p.id > since)
+    : PINGS.slice()
+
+  res.json(batch)
 })
 
 // app.post('/agent/auth', async (req, res) => {

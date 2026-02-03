@@ -159,14 +159,18 @@
       const activePoints = [];
       globe.pointsData(activePoints);
 
+      let lastSeen = 0;
       async function pullPings() {
         try {
-          const res = await fetch('/pings');
+          const res = await fetch('/pings?since=' + encodeURIComponent(lastSeen));
           if (!res.ok) return;
           const batch = await res.json();
           if (!Array.isArray(batch) || batch.length === 0) return;
+          let maxSeen = lastSeen;
           for (let i = 0; i < batch.length; i += 1) {
             const p = batch[i];
+            if (typeof p.ts === 'number' && p.ts > maxSeen) maxSeen = p.ts;
+            if (typeof p.id === 'number' && p.id > maxSeen) maxSeen = p.id;
             activePoints.push({
               lat: p.lat,
               lng: p.lng,
@@ -179,6 +183,7 @@
               born: performance.now()
             });
           }
+          lastSeen = maxSeen;
         } catch (error) {
           console.log(error)
           // noop
