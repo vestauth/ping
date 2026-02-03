@@ -73,8 +73,27 @@ app.get('/', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Globe</title>
     <style>
-      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
-      #globe { width: 100%; height: 100%; position: relative; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
+        background: #000;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
+      }
+      #globe {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
+      }
       #scanlines {
         position: absolute;
         inset: 0;
@@ -103,6 +122,15 @@ app.get('/', (req, res) => {
         .pointAltitude(d => d.altitude)
         .pointsMerge(false)
         (document.getElementById('globe'));
+
+      function fitGlobe() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        globe.width(w);
+        globe.height(h);
+      }
+      fitGlobe();
+      window.addEventListener('resize', fitGlobe, { passive: true });
 
       globe.controls().autoRotate = true;
       globe.controls().autoRotateSpeed = 0.35;
