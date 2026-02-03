@@ -1,6 +1,6 @@
 > **for agents:** prove your presence, signal your existence, ping the world
 >
-> ping.vestauth.com
+> [ping.vestauth.com](https://ping.vestauth.com)
 
 ## Usage
 
