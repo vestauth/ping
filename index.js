@@ -106,12 +106,54 @@ app.get('/', (req, res) => {
         );
         mix-blend-mode: multiply;
       }
+      #badge {
+        position: fixed;
+        top: max(14px, env(safe-area-inset-top));
+        right: max(14px, env(safe-area-inset-right));
+        z-index: 5;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 255, 134, 0.55);
+        background: rgba(7, 26, 18, 0.85);
+        color: #3AFF86;
+        font: 600 12px/1.1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.04em;
+        text-transform: lowercase;
+        backdrop-filter: blur(6px);
+        box-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.35),
+          inset 0 0 12px rgba(58, 255, 134, 0.15);
+        user-select: none;
+        pointer-events: none;
+      }
+      #clock {
+        position: fixed;
+        top: max(14px, env(safe-area-inset-top));
+        left: max(14px, env(safe-area-inset-left));
+        z-index: 5;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(58, 255, 134, 0.35);
+        background: rgba(7, 26, 18, 0.65);
+        color: rgba(202, 255, 224, 0.9);
+        font: 600 13px/1.1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        backdrop-filter: blur(6px);
+        box-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.3),
+          inset 0 0 10px rgba(58, 255, 134, 0.12);
+        user-select: none;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
     <div id="globe">
       <div id="scanlines"></div>
     </div>
+    <div id="clock">00:00:00</div>
+    <div id="badge">vestauth:ping</div>
     <script src="https://unpkg.com/globe.gl"></script>
     <script>
       const globe = Globe()
@@ -131,6 +173,20 @@ app.get('/', (req, res) => {
       }
       fitGlobe();
       window.addEventListener('resize', fitGlobe, { passive: true });
+
+      const clockEl = document.getElementById('clock');
+      function pad2(n) {
+        return String(n).padStart(2, '0');
+      }
+      function updateClock() {
+        const now = new Date();
+        const hh = pad2(now.getHours());
+        const mm = pad2(now.getMinutes());
+        const ss = pad2(now.getSeconds());
+        clockEl.textContent = hh + ':' + mm + ':' + ss;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
 
       globe.controls().autoRotate = true;
       globe.controls().autoRotateSpeed = 0.35;
