@@ -2508,8 +2508,18 @@ const vestauth = require('vestauth')
 const app = express()
 app.use(express.json())
 
+app.get('/ping', (req, res) => {
+  const ping = {
+    lat: Math.random() * 180 - 90,
+    lng: Math.random() * 360 - 180,
+    altitude: 200 * (0.5 + Math.random() * 0.5)
+  }
+  PINGS.push(ping)
+  res.json(ping)
+})
+
 app.get('/pings', (req, res) => {
-  const batch = PINGS.splice(0, 3)
+  const batch = PINGS.splice(0, 2)
   res.json(batch)
 })
 
