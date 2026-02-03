@@ -124,7 +124,11 @@ app.get('/', (req, res) => {
           0 6px 18px rgba(0, 0, 0, 0.35),
           inset 0 0 12px rgba(58, 255, 134, 0.15);
         user-select: none;
-        pointer-events: none;
+        text-decoration: none;
+      }
+      #badge:focus-visible {
+        outline: 2px solid rgba(58, 255, 134, 0.7);
+        outline-offset: 3px;
       }
       #clock {
         position: fixed;
@@ -153,7 +157,7 @@ app.get('/', (req, res) => {
       <div id="scanlines"></div>
     </div>
     <div id="clock">00:00:00</div>
-    <div id="badge">vestauth:ping</div>
+    <a id="badge" href="https://github.com/vestauth/vestauth" target="_blank" rel="noreferrer">vestauth:ping</a>
     <script src="https://unpkg.com/globe.gl"></script>
     <script>
       const globe = Globe()
