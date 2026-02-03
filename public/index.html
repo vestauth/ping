@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Globe</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
+        background: #000;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
+      }
+      #globe {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+        min-height: 100dvh;
+      }
+      #scanlines {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.0) 0px,
+          rgba(0, 0, 0, 0.0) 2px,
+          rgba(0, 0, 0, 0.25) 3px
+        );
+        mix-blend-mode: multiply;
+      }
+      #badge {
+        position: fixed;
+        top: max(14px, env(safe-area-inset-top));
+        right: max(14px, env(safe-area-inset-right));
+        z-index: 5;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(58, 255, 134, 0.55);
+        background: rgba(7, 26, 18, 0.85);
+        color: #3AFF86;
+        font: 600 12px/1.1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.04em;
+        text-transform: lowercase;
+        backdrop-filter: blur(6px);
+        box-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.35),
+          inset 0 0 12px rgba(58, 255, 134, 0.15);
+        user-select: none;
+        text-decoration: none;
+      }
+      #badge:focus-visible {
+        outline: 2px solid rgba(58, 255, 134, 0.7);
+        outline-offset: 3px;
+      }
+      #clock {
+        position: fixed;
+        top: max(14px, env(safe-area-inset-top));
+        left: max(14px, env(safe-area-inset-left));
+        z-index: 5;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(58, 255, 134, 0.35);
+        background: rgba(7, 26, 18, 0.65);
+        color: rgba(202, 255, 224, 0.9);
+        font: 600 13px/1.1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        backdrop-filter: blur(6px);
+        box-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.3),
+          inset 0 0 10px rgba(58, 255, 134, 0.12);
+        user-select: none;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="globe">
+      <div id="scanlines"></div>
+    </div>
+    <div id="clock">00:00:00</div>
+    <a id="badge" href="https://github.com/vestauth/vestauth" target="_blank" rel="noreferrer">vestauth:ping</a>
+    <script src="https://unpkg.com/globe.gl"></script>
+    <script>
+      const globe = Globe()
+        .backgroundColor('#071A12')
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .pointColor(d => 'rgba(58, 255, 134, ' + (d.opacity ?? 1) + ')')
+        .pointRadius(d => d.r)
+        .pointAltitude(d => d.altitude)
+        .pointsMerge(false)
+        (document.getElementById('globe'));
+
+      function fitGlobe() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        globe.width(w);
+        globe.height(h);
+      }
+      fitGlobe();
+      window.addEventListener('resize', fitGlobe, { passive: true });
+
+      const clockEl = document.getElementById('clock');
+      function pad2(n) {
+        return String(n).padStart(2, '0');
+      }
+      function updateClock() {
+        const now = new Date();
+        const hh = pad2(now.getHours());
+        const mm = pad2(now.getMinutes());
+        const ss = pad2(now.getSeconds());
+        clockEl.textContent = hh + ':' + mm + ':' + ss;
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      globe.controls().autoRotate = true;
+      globe.controls().autoRotateSpeed = 0.35;
+      globe.pointOfView({ altitude: 2.6 }, 0);
+
+      const material = globe.globeMaterial();
+      material.color.set('#173d2a');
+      material.emissive.set('#0a1f15');
+      material.emissiveIntensity = 0.15;
+      material.shininess = 0.25;
+      globe.atmosphereColor('#3AFF86');
+      globe.atmosphereAltitude(0.08);
+
+      const growDuration = 200;
+      const holdDurationMs = 2000;
+      const fadeDurationMs = 5000;
+      const maxRadius = 0.12;
+      const activePoints = [];
+      globe.pointsData(activePoints);
+
+      async function pullPings() {
+        try {
+          const res = await fetch('/pings');
+          if (!res.ok) return;
+          const batch = await res.json();
+          if (!Array.isArray(batch) || batch.length === 0) return;
+          for (let i = 0; i < batch.length; i += 1) {
+            const p = batch[i];
+            activePoints.push({
+              lat: p.lat,
+              lng: p.lng,
+              altitude: 0,
+              maxAltitude: p.altitude,
+              r: maxRadius,
+              opacity: 1,
+              grown: false,
+              start: performance.now(),
+              born: performance.now()
+            });
+          }
+        } catch (error) {
+          console.log(error)
+          // noop
+        }
+      }
+
+      pullPings();
+      setInterval(pullPings, 100);
+
+      function animate() {
+        const now = performance.now();
+        let updated = false;
+        for (let i = 0; i < activePoints.length; i += 1) {
+          const p = activePoints[i];
+          const age = now - p.born;
+          const totalLifespanMs = growDuration + holdDurationMs + fadeDurationMs;
+          if (age >= totalLifespanMs) {
+            activePoints.splice(i, 1);
+            i -= 1;
+            updated = true;
+            continue;
+          }
+          const fadeStart = growDuration + holdDurationMs;
+          if (age >= fadeStart) {
+            const fadeT = Math.min(1, (age - fadeStart) / fadeDurationMs);
+            const nextOpacity = Math.max(0, 1 - fadeT);
+            if (nextOpacity !== p.opacity) {
+              p.opacity = nextOpacity;
+              updated = true;
+            }
+            const nextAltitude = Math.max(0, p.maxAltitude * (1 - fadeT));
+            if (nextAltitude !== p.altitude) {
+              p.altitude = nextAltitude;
+              updated = true;
+            }
+          }
+          if (!p.grown && age <= growDuration) {
+            const t = Math.min(1, age / growDuration);
+            const nextAltitude = Math.min(p.maxAltitude, p.maxAltitude * t);
+            if (nextAltitude !== p.altitude) {
+              p.altitude = nextAltitude;
+              updated = true;
+            }
+          } else if (!p.grown) {
+            p.altitude = p.maxAltitude;
+            p.grown = true;
+            updated = true;
+          }
+        }
+
+        if (updated) globe.pointsData(activePoints.slice());
+        requestAnimationFrame(animate);
+      }
+      animate();
+    </script>
+  </body>
+</html>
