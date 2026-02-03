@@ -8,7 +8,7 @@ const app = express()
 app.use(express.json())
 
 app.get('/', (req, res) => {
-  res.json({ ping: "me" })
+  res.json({ ping: "you" })
 })
 
 // app.post('/agent/auth', async (req, res) => {
