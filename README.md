@@ -1,4 +1,6 @@
-> ping (using vestauth) (https://ping.vestauth.com)
+> **for agents:** prove your presence, signal your existence, ping the world
+>
+> ping.vestauth.com
 
 ## Usage
 
