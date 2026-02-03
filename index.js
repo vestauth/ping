@@ -40,10 +40,10 @@ app.get('/', (req, res) => {
       const globe = Globe()
         .backgroundColor('#071A12')
         .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
-        .pointColor(() => '#3AFF86')
+        .pointColor(d => 'rgba(58, 255, 134, ' + (d.opacity ?? 1) + ')')
         .pointRadius(d => d.r)
-        .pointAltitude(d => d.alt)
-        .pointsMerge(true)
+        .pointAltitude(d => d.altitude)
+        .pointsMerge(false)
         (document.getElementById('globe'));
 
       globe.controls().autoRotate = true;
@@ -58,27 +58,21 @@ app.get('/', (req, res) => {
       globe.atmosphereColor('#3AFF86');
       globe.atmosphereAltitude(0.08);
 
-      const maxAlt = 0.25;
-      const lifespanMs = 8000;
-      const fadeDurationMs = 3000;
-      const maxRadius = 0.08;
-      const growDuration = 500;
+      const maxAlt = 200;
+      const growDuration = 200;
+      const holdDurationMs = 2000;
+      const fadeDurationMs = 5000;
+      const maxRadius = 0.12;
       const allPoints = Array.from({ length: 500 }, () => ({
         lat: Math.random() * 180 - 90,
-        lng: Math.random() * 360 - 180
+        lng: Math.random() * 360 - 180,
+        altitude: maxAlt * (0.5 + Math.random() * 0.5)
       }));
 
-      const initialCount = 10;
-      const activePoints = allPoints.slice(0, initialCount).map(p => ({
-        ...p,
-        alt: maxAlt,
-        r: maxRadius,
-        start: 0,
-        born: performance.now()
-      }));
+      const activePoints = [];
       globe.pointsData(activePoints);
 
-      let shown = initialCount;
+      let shown = 0;
       const interval = setInterval(() => {
         if (shown >= allPoints.length) {
           clearInterval(interval);
@@ -86,18 +80,18 @@ app.get('/', (req, res) => {
         }
         const p = allPoints[shown];
         activePoints.push({
-          ...p,
-          alt: 0,
+          lat: p.lat,
+          lng: p.lng,
+          altitude: 0,
+          maxAltitude: p.altitude,
           r: maxRadius,
+          opacity: 1,
+          grown: false,
           start: performance.now(),
           born: performance.now()
         });
         shown += 1;
       }, 100);
-
-      function easeOutCubic(t) {
-        return 1 - Math.pow(1 - t, 3);
-      }
 
       function animate() {
         const now = performance.now();
@@ -105,30 +99,41 @@ app.get('/', (req, res) => {
         for (let i = 0; i < activePoints.length; i += 1) {
           const p = activePoints[i];
           const age = now - p.born;
-          if (age >= lifespanMs) {
+          const totalLifespanMs = growDuration + holdDurationMs + fadeDurationMs;
+          if (age >= totalLifespanMs) {
             activePoints.splice(i, 1);
             i -= 1;
             updated = true;
             continue;
           }
-          const fadeStart = Math.max(0, lifespanMs - fadeDurationMs);
-          const nextRadius = age <= fadeStart
-            ? maxRadius
-            : Math.max(0, maxRadius * (1 - (age - fadeStart) / fadeDurationMs));
-          if (nextRadius !== p.r) {
-            p.r = nextRadius;
-            updated = true;
-          }
-          if (p.alt < maxAlt) {
-            const t = Math.min(1, (now - p.start) / growDuration);
-            const nextAlt = maxAlt * easeOutCubic(t);
-            if (nextAlt !== p.alt) {
-              p.alt = nextAlt;
+          const fadeStart = growDuration + holdDurationMs;
+          if (age >= fadeStart) {
+            const fadeT = Math.min(1, (age - fadeStart) / fadeDurationMs);
+            const nextOpacity = Math.max(0, 1 - fadeT);
+            if (nextOpacity !== p.opacity) {
+              p.opacity = nextOpacity;
+              updated = true;
+            }
+            const nextAltitude = Math.max(0, p.maxAltitude * (1 - fadeT));
+            if (nextAltitude !== p.altitude) {
+              p.altitude = nextAltitude;
               updated = true;
             }
           }
+          if (!p.grown && age <= growDuration) {
+            const t = Math.min(1, age / growDuration);
+            const nextAltitude = Math.min(p.maxAltitude, p.maxAltitude * t);
+            if (nextAltitude !== p.altitude) {
+              p.altitude = nextAltitude;
+              updated = true;
+            }
+          } else if (!p.grown) {
+            p.altitude = p.maxAltitude;
+            p.grown = true;
+            updated = true;
+          }
         }
-        if (updated) globe.pointsData(activePoints);
+        if (updated) globe.pointsData(activePoints.slice());
         requestAnimationFrame(animate);
       }
       animate();
