@@ -82,6 +82,40 @@
         user-select: none;
         pointer-events: none;
       }
+      .ping-label {
+        display: grid;
+        gap: 4px;
+        padding: 10px 12px 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(58, 255, 134, 0.6);
+        background: linear-gradient(160deg, rgba(7, 26, 18, 0.95), rgba(6, 16, 12, 0.85));
+        color: rgba(202, 255, 224, 0.95);
+        font: 600 11px/1.1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.06em;
+        text-transform: lowercase;
+        box-shadow:
+          0 10px 24px rgba(0, 0, 0, 0.45),
+          inset 0 0 16px rgba(58, 255, 134, 0.18);
+        pointer-events: none;
+        transform: translateY(-4px);
+        backdrop-filter: blur(4px);
+      }
+      .ping-label__title {
+        font-size: 10px;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .ping-label__agent {
+        font-size: 12px;
+        color: #3aff86;
+        letter-spacing: 0.08em;
+      }
+      .ping-label__meta {
+        font-size: 10px;
+        opacity: 0.75;
+        letter-spacing: 0.04em;
+      }
     </style>
   </head>
   <body>
@@ -98,14 +132,14 @@
         .pointColor(d => 'rgba(58, 255, 134, ' + (d.opacity ?? 1) + ')')
         .pointRadius(d => d.r)
         .pointAltitude(d => d.altitude)
-        .labelText(d => d.label || '')
-        .labelSize(() => 1.1)
-        .labelColor(d => 'rgba(202, 255, 224, ' + (d.opacity ?? 1) + ')')
-        .labelAltitude(d => {
-          const a = (d.altitude ?? d.maxAltitude ?? 0) * 0.002 + 0.05;
-          return Math.min(0.3, Math.max(0.05, a));
+        .htmlElementsData([])
+        .htmlLat(d => d.lat)
+        .htmlLng(d => d.lng)
+        .htmlAltitude(d => {
+          const a = (d.altitude ?? d.maxAltitude ?? 0) * 0.002 + 0.06;
+          return Math.min(0.35, Math.max(0.06, a));
         })
-        .labelResolution(2)
+        .htmlElement(d => d.htmlEl || makeHtmlLabel(d))
         .pointsMerge(false)
         (document.getElementById('globe'));
 
@@ -166,13 +200,53 @@
       const maxRadius = 0.12;
       const activePoints = [];
       globe.pointsData(activePoints);
-      globe.labelsData(activePoints);
+      globe.htmlElementsData(activePoints);
 
       function shortAgentId(value) {
-        if (!value && value !== 0) return 'anon';
+        if (!value && value !== 0) return 'agent-????';
         const str = String(value);
-        if (str.length <= 10) return str;
-        return str.slice(0, 4) + '...' + str.slice(-4);
+        const marker = 'agent-';
+        const idx = str.indexOf(marker);
+        if (idx !== -1) {
+          const after = str.slice(idx + marker.length);
+          return 'agent-' + after.slice(0, 4).padEnd(4, '?');
+        }
+        return 'agent-' + str.slice(0, 4).padEnd(4, '?');
+      }
+
+      function formatMeta(d) {
+        const lat = d.lat != null ? d.lat.toFixed(2) : '--';
+        const lng = d.lng != null ? d.lng.toFixed(2) : '--';
+        const ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--';
+        return 'loc ' + lat + ',' + lng + ' · ' + ts;
+      }
+
+      function makeHtmlLabel(d) {
+        const root = document.createElement('div');
+        root.className = 'ping-label';
+        root.style.opacity = String(d.opacity ?? 1);
+
+        const title = document.createElement('div');
+        title.className = 'ping-label__title';
+        title.textContent = 'id: ' + (d.id ?? '??');
+
+        const agent = document.createElement('div');
+        agent.className = 'ping-label__agent';
+        agent.textContent = d.label || 'agent-????';
+
+        const meta = document.createElement('div');
+        meta.className = 'ping-label__meta';
+        meta.textContent = formatMeta(d);
+
+        root.appendChild(title);
+        root.appendChild(agent);
+        root.appendChild(meta);
+
+        d.htmlEl = root;
+        d.htmlTitle = title;
+        d.htmlAgent = agent;
+        d.htmlMeta = meta;
+        return root;
       }
 
       let lastSeen = 0;
@@ -197,7 +271,13 @@
               grown: false,
               start: performance.now(),
               born: performance.now(),
-              label: shortAgentId(p.agent_id)
+              label: shortAgentId(p.agent_id),
+              id: p.id,
+              ts: p.ts,
+              htmlEl: null,
+              htmlTitle: null,
+              htmlAgent: null,
+              htmlMeta: null
             });
           }
           lastSeen = maxSeen;
@@ -249,12 +329,16 @@
             p.grown = true;
             updated = true;
           }
+
+          if (p.htmlEl) {
+            p.htmlEl.style.opacity = String(p.opacity ?? 1);
+          }
         }
 
         if (updated) {
           const next = activePoints.slice();
           globe.pointsData(next);
-          globe.labelsData(next);
+          globe.htmlElementsData(next);
         }
         requestAnimationFrame(animate);
       }
