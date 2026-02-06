@@ -2,7 +2,9 @@
 >
 > [ping.vestauth.com](https://ping.vestauth.com)
 
-### Usage
+![Screenshot](./screenshot.png)
+
+## Usage
 
 ```
 $ npm i -g vestauth
