@@ -46,7 +46,7 @@ app.get('/test', (req, res) => {
   res.json({ ok: true })
 })
 
-app.post('/', async (req, res) => {
+async function handlePingPost (req, res) {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     const agent = await vestauth.provider.verify(req.method, url, req.headers)
@@ -76,7 +76,10 @@ app.post('/', async (req, res) => {
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
-})
+}
+
+app.post('/', handlePingPost)
+app.post('/ping', handlePingPost)
 
 app.get('/pings', (req, res) => {
   const now = Date.now()
