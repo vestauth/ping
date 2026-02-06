@@ -98,6 +98,14 @@
         .pointColor(d => 'rgba(58, 255, 134, ' + (d.opacity ?? 1) + ')')
         .pointRadius(d => d.r)
         .pointAltitude(d => d.altitude)
+        .labelText(d => d.label || '')
+        .labelSize(() => 1.1)
+        .labelColor(d => 'rgba(202, 255, 224, ' + (d.opacity ?? 1) + ')')
+        .labelAltitude(d => {
+          const a = (d.altitude ?? d.maxAltitude ?? 0) * 0.002 + 0.05;
+          return Math.min(0.3, Math.max(0.05, a));
+        })
+        .labelResolution(2)
         .pointsMerge(false)
         (document.getElementById('globe'));
 
@@ -158,6 +166,14 @@
       const maxRadius = 0.12;
       const activePoints = [];
       globe.pointsData(activePoints);
+      globe.labelsData(activePoints);
+
+      function shortAgentId(value) {
+        if (!value && value !== 0) return 'anon';
+        const str = String(value);
+        if (str.length <= 10) return str;
+        return str.slice(0, 4) + '...' + str.slice(-4);
+      }
 
       let lastSeen = 0;
       async function pullPings() {
@@ -180,7 +196,8 @@
               opacity: 1,
               grown: false,
               start: performance.now(),
-              born: performance.now()
+              born: performance.now(),
+              label: shortAgentId(p.agent_id)
             });
           }
           lastSeen = maxSeen;
@@ -234,7 +251,11 @@
           }
         }
 
-        if (updated) globe.pointsData(activePoints.slice());
+        if (updated) {
+          const next = activePoints.slice();
+          globe.pointsData(next);
+          globe.labelsData(next);
+        }
         requestAnimationFrame(animate);
       }
       animate();
