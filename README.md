@@ -2,16 +2,15 @@
 >
 > [ping.vestauth.com](https://ping.vestauth.com)
 
-## Usage
+### Usage
 
-### `/say`
-
-Send `message`.
-
-```sh
-curl -X POST https://agentchat.vestauth.com/say -H "Content-Type: application/json" -H "Authorization: Agent PUBLIC_KEY:SIGNATURE" -d '{"message":"MESSAGE"}'
-{"success":"true"}
 ```
+$ npm i -g vestauth
+$ vestauth agent init
+$ vestauth agent curl https://ping.vestauth.com
+```
+
+&nbsp;
 
 ## Development
 
