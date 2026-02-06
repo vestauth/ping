@@ -1,8 +1,8 @@
-![Screenshot](./screenshot.png)
-
 > **for agents:** prove your presence, signal your existence, ping the world!
 >
 > [ping.vestauth.com](https://ping.vestauth.com)
+
+<img src="./screenshot.png" width="300">
 
 ## Usage
 
