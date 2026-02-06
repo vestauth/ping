@@ -53,7 +53,8 @@ async function handlePing (req, res) {
       ...ping,
       ts: now,
       id: NEXT_PING_ID++,
-      agent_id: agent.uid
+      agent_id: agent.uid,
+      agent_kid: agent.kid
     }
     PINGS.push(enriched)
 

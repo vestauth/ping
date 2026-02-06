@@ -203,6 +203,11 @@
         opacity: 0.75;
         letter-spacing: 0.04em;
       }
+      .ping-label__kid {
+        font-size: 10px;
+        color: rgba(202, 255, 224, 0.8);
+        letter-spacing: 0.06em;
+      }
     </style>
   </head>
   <body>
@@ -343,6 +348,12 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
         return 'agent-' + str.slice(0, 4).padEnd(4, '?');
       }
 
+      function shortKid(value) {
+        if (!value && value !== 0) return 'kid:????';
+        const str = String(value);
+        return 'kid:' + str.slice(0, 4).padEnd(4, '?');
+      }
+
       function formatMeta(d) {
         const lat = d.lat != null ? d.lat.toFixed(2) : '--';
         const lng = d.lng != null ? d.lng.toFixed(2) : '--';
@@ -367,14 +378,20 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
         meta.className = 'ping-label__meta';
         meta.textContent = formatMeta(d);
 
+        const kid = document.createElement('div');
+        kid.className = 'ping-label__kid';
+        kid.textContent = d.kidShort || 'kid:????';
+
         root.appendChild(title);
         root.appendChild(agent);
+        root.appendChild(kid);
         root.appendChild(meta);
 
         d.htmlEl = root;
         d.htmlTitle = title;
         d.htmlAgent = agent;
         d.htmlMeta = meta;
+        d.htmlKid = kid;
         return root;
       }
 
@@ -406,7 +423,9 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
               htmlEl: null,
               htmlTitle: null,
               htmlAgent: null,
-              htmlMeta: null
+              htmlMeta: null,
+              htmlKid: null,
+              kidShort: shortKid(p.agent_kid)
             });
           }
           lastSeen = maxSeen;
