@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>vestauth:ping</title>
+    <meta property="og:title" content="vestauth:ping" />
+    <meta property="og:description" content="prove your presence, signal your existence, ping the world" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1500" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
     <style>
       html, body {
         margin: 0;
@@ -38,6 +45,12 @@
           rgba(0, 0, 0, 0.25) 3px
         );
         mix-blend-mode: multiply;
+      }
+      body.og-mode #clock {
+        display: none;
+      }
+      body.og-mode #scanlines {
+        opacity: 0.3;
       }
       #badge {
         position: fixed;
@@ -209,6 +222,9 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
     <a id="badge" href="https://github.com/vestauth/vestauth" target="_blank" rel="noreferrer">vestauth:ping</a>
     <script src="https://unpkg.com/globe.gl"></script>
     <script>
+      const ogMode = new URLSearchParams(window.location.search).get('og') === '1';
+      if (ogMode) document.body.classList.add('og-mode');
+
       const globe = Globe()
         .backgroundColor('#071A12')
         .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
@@ -277,6 +293,11 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
       globe.controls().autoRotate = true;
       globe.controls().autoRotateSpeed = 0.35;
       globe.pointOfView({ altitude: 3.7 }, 0);
+      if (ogMode) {
+        globe.controls().autoRotate = false;
+        globe.controls().autoRotateSpeed = 0;
+        globe.pointOfView({ altitude: 3.4, lat: 15, lng: 10 }, 0);
+      }
 
       const material = globe.globeMaterial();
       material.color.set('#173d2a');
