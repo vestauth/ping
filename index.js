@@ -43,28 +43,44 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-app.post('/', (req, res) => {
-  const ping = getGeo(req)
-  const now = Date.now()
-  const enriched = {
-    ...ping,
-    ts: now,
-    id: NEXT_PING_ID++
+app.post('/', async (req, res) => {
+  try {
+    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    const agent = await vestauth.provider.verify(req.method, url, req.headers)
+
+    const ping = getGeo(req)
+    const now = Date.now()
+    const enriched = {
+      ...ping,
+      ts: now,
+      id: NEXT_PING_ID++
+    }
+    PINGS.push(enriched)
+
+    res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
+  } catch (err) {
+    res.status(401).json({ code: 401, error: { message: err.message }})
   }
-  PINGS.push(enriched)
-  res.json({ id: enriched.id, ts: enriched.ts })
 })
 
-app.get('/ping', (req, res) => {
-  const ping = getGeo(req)
-  const now = Date.now()
-  const enriched = {
-    ...ping,
-    ts: now,
-    id: NEXT_PING_ID++
+app.get('/ping', async (req, res) => {
+  try {
+    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    const agent = await vestauth.provider.verify(req.method, url, req.headers)
+
+    const ping = getGeo(req)
+    const now = Date.now()
+    const enriched = {
+      ...ping,
+      ts: now,
+      id: NEXT_PING_ID++
+    }
+    PINGS.push(enriched)
+
+    res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
+  } catch (err) {
+    res.status(401).json({ code: 401, error: { message: err.message }})
   }
-  PINGS.push(enriched)
-  res.json({ id: enriched.id, ts: enriched.ts })
 })
 
 app.get('/pings', (req, res) => {
