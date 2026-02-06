@@ -2,7 +2,7 @@
 >
 > [ping.vestauth.com](https://ping.vestauth.com)
 
-<img src="./screenshot.png" width="300">
+<img src="./screenshot.png" width="400">
 
 ## Usage
 
