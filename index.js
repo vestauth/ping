@@ -66,7 +66,7 @@ app.post('/', async (req, res) => {
 app.get('/ping', async (req, res) => {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    const agent = await vestauth.provider.verify(req.method, url, req.headers)
+    // const agent = await vestauth.provider.verify(req.method, url, req.headers)
 
     const ping = getGeo(req)
     const now = Date.now()
@@ -77,7 +77,8 @@ app.get('/ping', async (req, res) => {
     }
     PINGS.push(enriched)
 
-    res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
+    // res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
+    res.json({ id: enriched.id, ts: enriched.ts })
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
