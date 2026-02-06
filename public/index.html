@@ -346,7 +346,7 @@ vestauth agent curl https://ping.vestauth.com/ping</pre>
       function formatMeta(d) {
         const lat = d.lat != null ? d.lat.toFixed(2) : '--';
         const lng = d.lng != null ? d.lng.toFixed(2) : '--';
-        const ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--';
+        const ts = d.ts ? new Date(d.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '--';
         return 'loc ' + lat + ',' + lng + ' · ' + ts;
       }
 
