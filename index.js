@@ -43,7 +43,7 @@ app.get('/', (req, res) => {
 })
 
 // vestauth agent curl -X https://ping.vestauth.com/ping
-app.post('/ping', (req, res) => {
+app.post('/ping', async (req, res) => {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     const agent = await vestauth.provider.verify(req.method, url, req.headers)
