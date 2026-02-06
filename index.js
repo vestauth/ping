@@ -5,6 +5,7 @@ const PING_TTL_MS = 60 * 1000
 const MAX_PINGS = 5000
 
 const express = require('express')
+const path = require('path')
 const vestauth = require('vestauth')
 
 const app = express()
@@ -37,6 +38,10 @@ function getGeo (req) {
     // timezone: req.headers['cf-timezone'] || null,
   }
 }
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
 
 app.post('/', (req, res) => {
   const ping = getGeo(req)
