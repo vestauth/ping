@@ -53,32 +53,23 @@ app.post('/', async (req, res) => {
     const enriched = {
       ...ping,
       ts: now,
-      id: NEXT_PING_ID++
+      id: NEXT_PING_ID++,
+      agent_id: agent.uid
     }
     PINGS.push(enriched)
 
-    res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
-  } catch (err) {
-    res.status(401).json({ code: 401, error: { message: err.message }})
-  }
-})
-
-app.get('/ping', async (req, res) => {
-  try {
-    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    // const agent = await vestauth.provider.verify(req.method, url, req.headers)
-
-    const ping = getGeo(req)
-    const now = Date.now()
-    const enriched = {
-      ...ping,
-      ts: now,
-      id: NEXT_PING_ID++
+    const json = {
+      ping_id: enriched.id,
+      ping_timestamp: enriched.ts,
+      agent_id: agent.uid,
+      agent_well_known_url: agent.well_known_url,
+      agent_id: agent.kid,
+      agent_public_jwk: agent.public_jwk
     }
-    PINGS.push(enriched)
 
-    // res.json({ id: enriched.id, ts: enriched.ts, agent_id: agent.id })
-    res.json({ id: enriched.id, ts: enriched.ts })
+    console.log(json)
+
+    res.json(json)
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
