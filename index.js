@@ -73,7 +73,7 @@ app.post('/ping', async (req, res) => {
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
-}
+})
 
 app.get('/pings', (req, res) => {
   const now = Date.now()
