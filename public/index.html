@@ -25,6 +25,7 @@
         min-height: 100vh;
         min-height: 100svh;
         min-height: 100dvh;
+        z-index: auto;
       }
       #scanlines {
         position: absolute;
@@ -82,6 +83,79 @@
         user-select: none;
         pointer-events: none;
       }
+      #instructions {
+        position: fixed;
+        left: 50%;
+        bottom: max(18px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        z-index: 5;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(58, 255, 134, 0.3);
+        background: rgba(5, 14, 10, 0.55);
+        color: rgba(202, 255, 224, 0.8);
+        font: 600 11px/1.4 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.04em;
+        text-align: left;
+        box-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.25),
+          inset 0 0 10px rgba(58, 255, 134, 0.08);
+        backdrop-filter: blur(3px);
+        pointer-events: auto;
+        max-width: min(560px, calc(100vw - 28px));
+      }
+      @media (max-width: 680px) {
+        #instructions {
+          left: max(12px, env(safe-area-inset-left));
+          right: max(12px, env(safe-area-inset-right));
+          bottom: max(12px, env(safe-area-inset-bottom));
+          transform: none;
+          width: auto;
+          max-width: none;
+        }
+      }
+      #instructions__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      #instructions__title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        opacity: 0.55;
+        margin: 0;
+      }
+      #instructions__copy {
+        border: 1px solid rgba(58, 255, 134, 0.4);
+        background: rgba(7, 26, 18, 0.6);
+        color: rgba(58, 255, 134, 0.9);
+        font: 600 10px/1 "Space Grotesk", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      #instructions__copy.is-copied {
+        color: rgba(202, 255, 224, 0.95);
+        border-color: rgba(202, 255, 224, 0.7);
+      }
+      #instructions__copy:focus-visible {
+        outline: 2px solid rgba(58, 255, 134, 0.7);
+        outline-offset: 2px;
+      }
+      #instructions pre {
+        margin: 0;
+        padding: 0;
+        user-select: text;
+        pointer-events: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: rgba(58, 255, 134, 0.85);
+      }
       .ping-label {
         display: grid;
         gap: 4px;
@@ -123,6 +197,15 @@
       <div id="scanlines"></div>
     </div>
     <div id="clock">00:00:00</div>
+    <div id="instructions">
+      <div id="instructions__header">
+        <div id="instructions__title">Try It</div>
+        <button id="instructions__copy" type="button">Copy</button>
+      </div>
+      <pre id="instructions__text">curl -sfS https://vestauth.sh | sh
+vestauth agent init
+vestauth agent curl https://ping.vestauth.com/ping</pre>
+    </div>
     <a id="badge" href="https://github.com/vestauth/vestauth" target="_blank" rel="noreferrer">vestauth:ping</a>
     <script src="https://unpkg.com/globe.gl"></script>
     <script>
@@ -165,6 +248,31 @@
       }
       updateClock();
       setInterval(updateClock, 1000);
+
+      const instructionsText = document.getElementById('instructions__text');
+      const copyButton = document.getElementById('instructions__copy');
+      if (instructionsText && copyButton) {
+        const instructionsBox = document.getElementById('instructions');
+        if (instructionsBox) {
+          const stop = (event) => event.stopPropagation();
+          instructionsBox.addEventListener('pointerdown', stop);
+          instructionsBox.addEventListener('mousedown', stop);
+          instructionsBox.addEventListener('touchstart', stop, { passive: true });
+        }
+        copyButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(instructionsText.textContent || '');
+            copyButton.classList.add('is-copied');
+            copyButton.textContent = 'Copied';
+            setTimeout(() => {
+              copyButton.classList.remove('is-copied');
+              copyButton.textContent = 'Copy';
+            }, 1600);
+          } catch (err) {
+            console.log(err);
+          }
+        });
+      }
 
       globe.controls().autoRotate = true;
       globe.controls().autoRotateSpeed = 0.35;
