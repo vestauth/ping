@@ -10,7 +10,6 @@ const vestauth = require('vestauth')
 
 const app = express()
 app.use(express.json())
-app.use(express.static('public'))
 
 function randomLatLng () {
   const u = Math.random()
@@ -41,6 +40,10 @@ function getGeo (req) {
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
+
+app.get('/test', (req, res) => {
+  res.json({ ok: true })
 })
 
 app.post('/', async (req, res) => {
