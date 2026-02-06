@@ -4,7 +4,7 @@
 
 ![Screenshot](./screenshot.png)
 
-## Usage
+#### Usage
 
 ```
 $ npm i -g vestauth
