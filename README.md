@@ -9,7 +9,7 @@
 ```
 $ npm i -g vestauth
 $ vestauth agent init
-$ vestauth agent curl https://ping.vestauth.com
+$ vestauth agent curl -X POST https://ping.vestauth.com
 ```
 
 &nbsp;
