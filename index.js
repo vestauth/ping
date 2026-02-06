@@ -42,8 +42,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-// vestauth agent curl -X https://ping.vestauth.com/ping
-app.post('/ping', async (req, res) => {
+async function handlePing (req, res) {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     const agent = await vestauth.provider.verify(req.method, url, req.headers)
@@ -73,7 +72,11 @@ app.post('/ping', async (req, res) => {
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
-})
+}
+
+// vestauth agent curl -X https://ping.vestauth.com/ping
+app.post('/ping', handlePing)
+app.get('/ping', handlePing)
 
 app.get('/pings', (req, res) => {
   const now = Date.now()
