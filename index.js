@@ -63,7 +63,7 @@ async function handlePing (req, res) {
       ping_timestamp: enriched.ts,
       agent_id: agent.uid,
       agent_well_known_url: agent.well_known_url,
-      agent_id: agent.kid,
+      agent_kid: agent.kid,
       agent_public_jwk: agent.public_jwk
     }
 
