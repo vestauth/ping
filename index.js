@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
 async function handlePing (req, res) {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-    const agent = await vestauth.provider.verify(req.method, url, req.headers)
+    const agent = await vestauth.tool.verify(req.method, url, req.headers)
 
     const ping = getGeo(req)
     const now = Date.now()
