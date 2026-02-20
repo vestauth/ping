@@ -4,6 +4,6 @@
   },
   "dependencies": {
     "express": "^5.2.1",
-    "vestauth": "^0.14.1"
+    "vestauth": "^0.15.0"
   }
 }
