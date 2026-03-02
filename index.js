@@ -1,8 +1,8 @@
 const PORT = process.env.PORT || 3000
-const PINGS = []
-let NEXT_PING_ID = 1
-const PING_TTL_MS = 60 * 1000
-const MAX_PINGS = 5000
+const GEOS = []
+let NEXT_GEO_ID = 1
+const GEO_TTL_MS = 60 * 1000
+const MAX_GEOS = 5000
 
 const express = require('express')
 const path = require('path')
@@ -56,60 +56,57 @@ async function handleGeo (req, res) {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     const agent = await vestauth.tool.verify(req.method, url, req.headers)
 
-    const ping = getGeo(req)
+    const geo = getGeo(req)
     const now = Date.now()
     const enriched = {
-      ...ping,
+      ...geo,
       ts: now,
-      id: NEXT_PING_ID++,
+      id: NEXT_GEO_ID++,
       agent_id: agent.uid,
       agent_kid: agent.kid
     }
-    PINGS.push(enriched)
+    GEOS.push(enriched)
 
     const json = {
-      ping_id: enriched.id,
-      ping_timestamp: enriched.ts,
-      geo: {
-        latitude: enriched.lat,
-        longitude: enriched.lng,
-        altitude_m: enriched.altitude
-      },
-      agent_id: agent.uid,
-      agent_well_known_url: agent.well_known_url,
-      agent_kid: agent.kid,
-      agent_public_jwk: agent.public_jwk
+      agent_uid: agent.uid,
+      latitude: enriched.lat,
+      longitude: enriched.lng,
+      altitude_m: enriched.altitude
+      // geo_id: enriched.id,
+      // geo_timestamp: enriched.ts,
+      // agent_well_known_url: agent.well_known_url,
+      // agent_kid: agent.kid,
+      // agent_public_jwk: agent.public_jwk
     }
 
     console.log(json)
-
     res.json(json)
   } catch (err) {
     res.status(401).json({ code: 401, error: { message: err.message }})
   }
 }
 
-// vestauth agent curl -X https://ping.vestauth.com/ping
+// vestauth agent curl https://geo.vestauth.com/geo
 app.post('/ping', handleGeo)
 app.get('/ping', handleGeo)
 app.post('/geo', handleGeo)
 app.get('/geo', handleGeo)
 
-app.get('/pings', (req, res) => {
+app.get('/geos', (req, res) => {
   const now = Date.now()
   const since = Number(req.query.since || 0)
 
   // trim old and cap size
-  while (PINGS.length && now - PINGS[0].ts > PING_TTL_MS) {
-    PINGS.shift()
+  while (GEOS.length && now - GEOS[0].ts > GEO_TTL_MS) {
+    GEOS.shift()
   }
-  if (PINGS.length > MAX_PINGS) {
-    PINGS.splice(0, PINGS.length - MAX_PINGS)
+  if (GEOS.length > MAX_GEOS) {
+    GEOS.splice(0, GEOS.length - MAX_GEOS)
   }
 
   const batch = since > 0
-    ? PINGS.filter(p => p.ts > since || p.id > since)
-    : PINGS.slice()
+    ? GEOS.filter(p => p.ts > since || p.id > since)
+    : GEOS.slice()
 
   res.json(batch)
 })
