@@ -70,6 +70,11 @@ async function handlePing (req, res) {
     const json = {
       ping_id: enriched.id,
       ping_timestamp: enriched.ts,
+      geo: {
+        latitude: enriched.lat,
+        longitude: enriched.lng,
+        altitude_m: enriched.altitude
+      },
       agent_id: agent.uid,
       agent_well_known_url: agent.well_known_url,
       agent_kid: agent.kid,
