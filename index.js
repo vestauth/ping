@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-async function handlePing (req, res) {
+async function handleGeo (req, res) {
   try {
     const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
     const agent = await vestauth.tool.verify(req.method, url, req.headers)
@@ -90,8 +90,10 @@ async function handlePing (req, res) {
 }
 
 // vestauth agent curl -X https://ping.vestauth.com/ping
-app.post('/ping', handlePing)
-app.get('/ping', handlePing)
+app.post('/ping', handleGeo)
+app.get('/ping', handleGeo)
+app.post('/geo', handleGeo)
+app.get('/geo', handleGeo)
 
 app.get('/pings', (req, res) => {
   const now = Date.now()
